@@ -1,5 +1,5 @@
 ---
-name: short-drama
+name: short-drama-tw
 description: 短劇、微短劇、竪屏劇、短劇劇本、短劇分鏡、AI 短劇、爽劇、霸總、重生、逆襲、付費卡點、short drama、micro drama、vertical drama、web series script、storyboard。當使用者要企劃、撰寫、改編或拆解 1–3 分鐘一集的竪屏短劇（含角色表、分集大綱、劇本、分鏡、AI 影片／圖像／配音提示詞）時使用。以多階段工作流產出結構化文件。
 ---
 

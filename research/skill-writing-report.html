@@ -1,0 +1,752 @@
+<title>Skill 寫法拆解簿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* Layout: a film-reel report. Three "reels" (categories), each holding repo "takes":
+   file tree on the left, borrowable patterns on the right. Hero carries a live storyboard timeline. */
+:root {
+  --paper: #eff1f4;
+  --card: #ffffff;
+  --ink: #14161b;
+  --muted: #586070;
+  --line: #d3d7df;
+  --accent: #2741e0;
+  --accent-ink: #ffffff;
+  --mark: #ffe066;
+  --mark-ink: #14161b;
+  --seg: #c9cfdb;
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-slate: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: clamp(1.9rem, 4vw, 2.6rem);
+  --step-4: clamp(2.6rem, 7vw, 5.2rem);
+  --radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1014; --card: #161920; --ink: #e8eaf0; --muted: #9aa1b1; --line: #2a2f39;
+    --accent: #8d9cff; --accent-ink: #0e1014; --mark: #5a4b0c; --mark-ink: #fff4c2; --seg: #2f3542;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1014; --card: #161920; --ink: #e8eaf0; --muted: #9aa1b1; --line: #2a2f39;
+  --accent: #8d9cff; --accent-ink: #0e1014; --mark: #5a4b0c; --mark-ink: #fff4c2; --seg: #2f3542;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.75;
+  padding-inline: 16px;
+  padding-block: 0 72px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1160px; margin-inline: auto; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+code { background: color-mix(in srgb, var(--line) 55%, transparent); padding: 0.05em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+mark { background: var(--mark); color: var(--mark-ink); padding: 0 0.15em; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+
+/* nav */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  margin-inline: -16px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.nav .wrap { display: flex; gap: 6px 18px; align-items: center; flex-wrap: wrap; }
+.nav .brand { font-family: var(--font-slate); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: 1.05rem; margin-right: auto; }
+.nav a { color: var(--ink); text-decoration: none; font-size: var(--step--1); font-weight: 500; }
+.nav a:hover { color: var(--accent); }
+
+/* hero */
+.hero { padding-block: 56px 28px; display: grid; gap: 28px; }
+.eyebrow { font-family: var(--font-slate); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.95rem; color: var(--muted); }
+.hero h1 { font-family: var(--font-display); font-weight: 900; font-size: var(--step-4); line-height: 1.12; letter-spacing: 0.01em; }
+.hero h1 .slash { color: var(--accent); }
+.lede { max-width: 62ch; font-size: var(--step-1); line-height: 1.7; color: var(--ink); margin: 0; }
+.timeline { margin: 0; border: 1px solid var(--line); background: var(--card); border-radius: var(--radius); padding: 14px 14px 10px; }
+.timeline canvas { display: block; width: 100%; height: 120px; }
+.timeline .cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; font-size: var(--step--1); color: var(--muted); margin-top: 6px; }
+
+/* summary */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0; border-top: 2px solid var(--ink); margin-top: 8px; }
+.summary > div { padding: 18px 20px 18px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.summary .k { font-family: var(--font-slate); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.summary h3 { font-size: var(--step-1); margin-top: 8px; font-weight: 700; }
+.summary p { margin: 6px 0 0; color: var(--muted); max-width: 46ch; }
+
+/* reels */
+.reel { padding-top: 80px; scroll-margin-top: 40px; }
+.reel-head { display: grid; grid-template-columns: auto 1fr; gap: 6px 28px; align-items: end; border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+.reel-no { font-family: var(--font-slate); font-weight: 800; font-size: clamp(4rem, 12vw, 8rem); line-height: 0.8; color: var(--accent); }
+.reel-head h2 { font-family: var(--font-display); font-weight: 900; font-size: var(--step-3); line-height: 1.25; }
+.reel-head p { margin: 6px 0 0; color: var(--muted); max-width: 64ch; }
+@media (max-width: 640px) { .reel-head { grid-template-columns: 1fr; } }
+
+.take { padding-block: 40px; border-bottom: 1px solid var(--line); scroll-margin-top: 50px; }
+.take-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.take-top h3 { font-family: var(--font-mono); font-weight: 600; font-size: var(--step-2); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.take-top h3 a { color: var(--ink); text-decoration: none; }
+.take-top h3 a:hover { color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.75rem; letter-spacing: 0.04em; border: 1px solid var(--line); padding: 1px 8px; border-radius: 99px; color: var(--muted); white-space: nowrap; }
+.take .one { margin: 10px 0 0; max-width: 70ch; font-size: 1.05rem; }
+.take-grid { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 32px; margin-top: 24px; }
+@media (max-width: 820px) { .take-grid { grid-template-columns: 1fr; } }
+.tree { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7; overflow-x: auto; color: var(--ink); align-self: start; }
+.tree .d { color: var(--accent); font-weight: 600; }
+.tree .n { color: var(--muted); }
+.patterns { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; min-width: 0; }
+.patterns li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: 0 10px; }
+.patterns .ix { font-family: var(--font-slate); font-weight: 800; color: var(--accent); font-size: 1.15rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.patterns b { font-weight: 700; }
+.patterns p { margin: 2px 0 0; color: var(--ink); }
+blockquote { margin: 8px 0 0; padding: 6px 0 6px 14px; border-left: 2px solid var(--line); color: var(--muted); font-size: 0.92rem; overflow-wrap: anywhere; }
+.verdict { margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.verdict div { padding: 12px 16px; border-radius: var(--radius); min-width: 0; }
+.verdict .yes { background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+.verdict .no { background: var(--card); border: 1px dashed var(--line); }
+.verdict h4 { margin: 0 0 4px; font-size: var(--step--1); letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+.verdict p { margin: 0; }
+
+.lesson { margin-top: 36px; background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 26px 28px; }
+.lesson h3 { font-family: var(--font-display); font-weight: 900; font-size: var(--step-2); }
+.lesson ol { margin: 14px 0 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 78ch; }
+.lesson code { background: color-mix(in srgb, var(--paper) 16%, transparent); color: var(--paper); }
+
+/* matrix */
+.matrix-box { overflow-x: auto; margin-top: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 0.9rem; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: center; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--muted); }
+tbody th { font-family: var(--font-mono); font-weight: 600; font-size: 0.82rem; white-space: nowrap; }
+td.f { color: var(--accent); font-size: 1.1rem; }
+td.h { color: var(--accent); opacity: 0.6; font-size: 1.1rem; }
+td.o { color: var(--line); font-size: 1.1rem; }
+.legend { font-size: var(--step--1); color: var(--muted); margin-top: 8px; }
+tr.group td { text-align: left; font-family: var(--font-slate); letter-spacing: 0.12em; font-weight: 700; color: var(--muted); background: color-mix(in srgb, var(--line) 30%, transparent); padding-block: 4px; }
+
+/* blueprint */
+.blueprint { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 32px; margin-top: 28px; }
+@media (max-width: 860px) { .blueprint { grid-template-columns: 1fr; } }
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
+.split div { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.split h4 { margin: 0; font-family: var(--font-mono); font-size: 0.95rem; color: var(--accent); }
+.split p { margin: 6px 0 0; font-size: 0.95rem; }
+.rules { counter-reset: r; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.rules li { counter-increment: r; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: 10px; }
+.rules li::before { content: counter(r, decimal-leading-zero); font-family: var(--font-slate); font-weight: 800; font-size: 1.3rem; color: var(--accent); line-height: 1.5; }
+.rules b { display: block; }
+.rules span { color: var(--muted); font-size: 0.95rem; }
+.section-title { font-family: var(--font-display); font-weight: 900; font-size: var(--step-3); padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+.sources { columns: 2 280px; gap: 32px; padding-left: 1.1em; margin-top: 18px; font-size: 0.92rem; }
+.sources li { break-inside: avoid; margin-bottom: 6px; overflow-wrap: anywhere; }
+footer { margin-top: 56px; color: var(--muted); font-size: var(--step--1); }
+</style>
+
+<nav class="nav" aria-label="章節">
+  <div class="wrap">
+    <span class="brand">Skill Takes</span>
+    <a href="#reel1">卷一 eli5</a>
+    <a href="#reel2">卷二 AI 寫作</a>
+    <a href="#reel3">卷三 AI 短劇</a>
+    <a href="#matrix">對照表</a>
+    <a href="#blueprint">我們的骨架</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
+    <div class="eyebrow">AI 短劇 Skill 開源研究 · 2026.10</div>
+    <h1>九個開源 Skill，<br>拆成可以借鏡的寫法<span class="slash">／</span></h1>
+    <p class="lede">我們把 eli5、AI 寫作、AI 短劇三類各挑三個真實 repo 拉下來逐檔讀過。這份筆記只記能直接搬進我們短劇 Skill 的寫法：指令怎麼寫得短、流程怎麼拆、檢查怎麼落地、<code>references/</code> 與 templates 怎麼分工。</p>
+    <figure class="timeline" aria-label="分鏡時間軸示意：每段不超過 15 秒，每切 2 到 5 秒">
+      <canvas id="tl" aria-hidden="true"></canvas>
+      <figcaption class="cap"><span>示意：shuohao-skills 的分鏡硬門，一段 ≤ 15 秒、每切 2–5 秒</span><span class="mono" id="tc">E01-01 · 00:00.00</span></figcaption>
+    </figure>
+  </header>
+
+  <section aria-label="三個結論" class="summary">
+    <div>
+      <div class="k">01</div>
+      <h3>SKILL.md 只放「流程與邊界」</h3>
+      <p>mblode 的 eli5 本體只有 42 行，shuohao 的劇本 Skill 159 行。知識、詞表、格式細節搬到 <code>references/</code>，並寫明什麼訊號出現才讀哪一份。</p>
+    </div>
+    <div>
+      <div class="k">02</div>
+      <h3>品質檢查要能被執行</h3>
+      <p>從「交稿前自檢清單」到「腳本質量門」是一條光譜。短劇最好的兩個 repo 都把時長、台詞長度、鉤子位置交給腳本檢查，模型只負責寫戲。</p>
+    </div>
+    <div>
+      <div class="k">03</div>
+      <h3>先定義讀者與不做的事</h3>
+      <p>每個好 Skill 都有一段「IS NOT／邊界」，把相鄰工作指給別的 Skill。這比加長規則更能讓輸出穩定。</p>
+    </div>
+  </section>
+
+  <!-- ============ REEL 1 ============ -->
+  <section class="reel" id="reel1">
+    <div class="reel-head">
+      <div class="reel-no">R1</div>
+      <div>
+        <div class="eyebrow">卷一 · 輸出風格控制、精簡指令</div>
+        <h2>eli5：同一個名字，三種完全不同的寫法</h2>
+        <p>三個都叫 <code>eli5</code>，篇幅從 42 行到 116 行。差異不在長短，而在它們如何定義「讀者」與「交出什麼」。</p>
+      </div>
+    </div>
+
+    <article class="take" id="dzhng">
+      <div class="take-top">
+        <h3><a href="https://github.com/dzhng/skills/blob/main/skills/engineering/eli5/SKILL.md">dzhng/skills · eli5</a></h3>
+        <div class="chips"><span class="chip">72 行</span><span class="chip">單一 SKILL.md</span><span class="chip">MIT</span><span class="chip">更新 2026-10-05</span></div>
+      </div>
+      <p class="one">把技術規格講給「懂技術、但沒看過這份程式碼」的人聽。最精準的一份讀者定義。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">skills/engineering/eli5/</span>
+└── SKILL.md
+    <span class="n">├ frontmatter
+    │   disable-model-invocation: true
+    ├ ## The Register   ← 語域定義
+    ├ ## Workflow       ← 4 步
+    ├ ## Output         ← 固定 3 個標題
+    └ ## Rules</span></pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>一句話定調，「簡化講法，不簡化主張」</b><p>開頭就把風格寫成可檢驗的原則，後面所有規則都從這句長出來。</p><blockquote>Plain language, full precision: simplify the telling, never the claims.</blockquote></div></li>
+          <li><span class="ix">2</span><div><b>把風格寫成可被其他 Skill 引用的「語域」</b><p><code>The Register</code> 一段寫明「別的 Skill 要輸出給沒參與工作的人看時，指到這裡」。風格是一個共用模組，不是每個 Skill 各寫一次。</p></div></li>
+          <li><span class="ix">3</span><div><b>失敗判準寫成一句測試</b><p>「讀者還得問『這段再解釋一下』就算失敗」。比列十條形容詞更好執行。</p></div></li>
+          <li><span class="ix">4</span><div><b>何時換表達形式，給出可觀察的訊號</b><p>文字裡出現 only when、before、unless 而讀者仍說不出第二次呼叫會怎樣，就改用偽代碼。</p></div></li>
+          <li><span class="ix">5</span><div><b>輸出固定成三個標題加一句收尾</b><p>Problem → Solution → Schema changes，最後一句說使用者會注意到什麼。沒有變更也要明說「沒有」。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>為短劇寫一段「讀者是誰」：例如分鏡的讀者是視頻模型，它沒看過劇本，所以每鏡要自包含。</p></div>
+        <div class="no"><h4>要注意</h4><p><code>disable-model-invocation</code> 讓它只能手動呼叫，適合工具型 Skill；短劇主流程反而需要自動觸發。</p></div>
+      </div>
+    </article>
+
+    <article class="take" id="mblode">
+      <div class="take-top">
+        <h3><a href="https://github.com/mblode/agent-skills/tree/main/skills/eli5">mblode/agent-skills · eli5</a></h3>
+        <div class="chips"><span class="chip">42 行 + 99 行 reference</span><span class="chip">7 條 evals</span><span class="chip">MIT</span><span class="chip">更新 2026-10-06</span></div>
+      </div>
+      <p class="one">最短也最有紀律的一份。用一張「形式階梯」表決定輸出是文字、圖、網頁還是影片。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">skills/eli5/</span>
+├── SKILL.md          <span class="n">42 行：風格 + 選形式</span>
+├── <span class="d">references/</span>
+│   └── formats.md    <span class="n">STE100、圖、HTML、影片</span>
+└── <span class="d">evals/</span>
+    └── evals.json    <span class="n">7 個情境 + assertions</span></pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>開頭先寫 IS NOT</b><p>第一行就說「產品文案找 ghostwriter、投影片找 presentation-creator」。邊界先於規則。</p></div></li>
+          <li><span class="ix">2</span><div><b>選項表帶「成本」欄，規定取最低一階</b><p>文字 → 受控英文 → 圖 → HTML → 影片，每階寫明何時用、成本多高；「自己選時，沒問過就不超過圖」。</p></div></li>
+          <li><span class="ix">3</span><div><b>漸進載入寫成條件句</b><p>「除了純文字以外的形式，先讀 <code>references/formats.md</code>」。本體保持 42 行，細節按需讀。</p></div></li>
+          <li><span class="ix">4</span><div><b>明確禁止儀式性輸出</b><blockquote>Return the explanation itself. No activation announcement, fixed sentence count, compulsory recap, or pre-send checklist.</blockquote></div></li>
+          <li><span class="ix">5</span><div><b>共用詞表只放一份</b><p>AI 腔詞表指向兄弟 Skill <code>ghostwriter/references/tells.md</code>，「整個集合唯一的一份」，避免多處維護。</p></div></li>
+          <li><span class="ix">6</span><div><b>evals 跟 Skill 放一起，但寫明「解釋時不要載入」</b><p>每條 eval 是 prompt + expected + assertions，例如「保留 <code>git rebase --onto main</code> 原文」「每句不超過 25 字」。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>形式階梯可以直接改成短劇的「產出層級」：大綱 → 劇本 → 分鏡 → 提示詞，使用者沒點名就停在最低必要層。</p></div>
+        <div class="no"><h4>要注意</h4><p>它依賴同一 repo 的兄弟 Skill。單獨拷走時，引用的 tells.md 會斷掉。</p></div>
+      </div>
+    </article>
+
+    <article class="take" id="dreambig">
+      <div class="take-top">
+        <h3><a href="https://github.com/DreambigOu/ELI5">DreambigOu/ELI5</a></h3>
+        <div class="chips"><span class="chip">116 行</span><span class="chip">附評測部落格</span><span class="chip">MIT</span></div>
+      </div>
+      <p class="one">按聽眾調整說法：年齡、年級、職位、家人。最典型的「查表式」風格控制。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">skills/eli5/</span>
+└── SKILL.md
+    <span class="n">├ description  ← 塞滿觸發語
+    ├ Step 1 辨識聽眾   4 張表
+    ├ Step 2 讀素材
+    ├ Step 3 寫解釋     結構 + 語言校準
+    ├ Examples          3 組
+    └ Important Reminders</span></pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>description 列出口語觸發詞，連部分匹配都寫</b><p>「explain to my wife」「tell my boss」也要觸發。對中文使用者，這裡就該寫「白話一點」「講給我媽聽」。</p></div></li>
+          <li><span class="ix">2</span><div><b>聽眾 × 風格對照表</b><p>每列寫「他們在乎什麼／用什麼框架講」。把模糊的「看對象調整」變成查表。</p></div></li>
+          <li><span class="ix">3</span><div><b>固定的四段結構</b><p>是什麼 → 類比 → 按需加細節 → 對你有什麼影響。</p></div></li>
+          <li><span class="ix">4</span><div><b>預設值寫死</b><p>沒說聽眾就當 5 歲。每個分岔都有預設，模型不用停下來問。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>「題材 × 觀看契約」可以照這個表格做：甜寵、復仇、懸疑各自在乎什麼爽點、用什麼節奏。</p></div>
+        <div class="no"><h4>要注意</h4><p>「80% 正確也比聽不懂好」跟 dzhng 的「不簡化主張」正好相反；放進短劇裡等於允許改劇情。還有「You are an expert」式人設對輸出幾乎沒有約束力。</p></div>
+      </div>
+    </article>
+
+    <div class="lesson">
+      <h3>卷一帶走的寫法</h3>
+      <ol>
+        <li>一句可檢驗的原則先行，其餘規則從它推出。</li>
+        <li>邊界寫在最前面：IS NOT 加上「這種事交給哪個 Skill」。</li>
+        <li>選項用表格，欄位要有「何時用」與「代價」，並規定預設取哪一格。</li>
+        <li>禁止儀式性輸出：不宣告模式、不強制總結、不附自檢清單給使用者看。</li>
+        <li>evals 放在 Skill 旁邊，但寫明執行任務時不要讀它。</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ REEL 2 ============ -->
+  <section class="reel" id="reel2">
+    <div class="reel-head">
+      <div class="reel-no">R2</div>
+      <div>
+        <div class="eyebrow">卷二 · 流程拆解、品質檢查清單、避免 AI 腔</div>
+        <h2>AI 寫作：先說清楚 AI 腔從哪來，再給改法</h2>
+        <p>兩個去 AI 腔的 Skill 都源自維基百科 WikiProject AI Cleanup 的〈Signs of AI writing〉，但組織方式不同；第三個是 Anthropic 官方的協作寫文件流程。</p>
+      </div>
+    </div>
+
+    <article class="take" id="humanizer">
+      <div class="take-top">
+        <h3><a href="https://github.com/blader/humanizer">blader/humanizer</a></h3>
+        <div class="chips"><span class="chip">397 行</span><span class="chip">v3.1.0</span><span class="chip">26 個模式</span><span class="chip">MIT</span></div>
+      </div>
+      <p class="one">去 AI 腔最成熟的一份。重點不是詞表，而是「為什麼」與「強度分級」。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">humanizer/</span>
+├── SKILL.md
+│   <span class="n">├ 為什麼 AI 文字會這樣（6 類）
+│   ├ How to work  4 步
+│   ├ Voice / What to return
+│   ├ A–F 26 個模式（強→弱）
+│   └ When not to act</span>
+├── <span class="d">scripts/</span>validate-package.py
+├── <span class="d">.github/</span>ISSUE_TEMPLATE/new-pattern.yml
+└── CHANGELOG.md</pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>先解釋成因，模式才有判斷依據</b><p>「模型挑最適合最多讀者的預設選擇；人為一個讀者挑，所以不均勻且具體。」六大類（鋪陳、規律節奏、膨脹、格式、殘留、寫錯讀者）都是這個成因的變形。</p></div></li>
+          <li><span class="ix">2</span><div><b>模式按強度排序並標「單獨不算」</b><p>§1–§5 看到一次就改；標 <i>weak alone</i> 的要和其他痕跡同時出現才動手。避免過度修改。</p></div></li>
+          <li><span class="ix">3</span><div><b>每個模式同一個格式</b><p>Watch for → Problem → Before → After。前後對照讓模型學到改法，而不只是禁詞。</p></div></li>
+          <li><span class="ix">4</span><div><b>四步流程裡有「改完再掃一次最常存活的痕跡」</b><p>標記 → 起草 → 檢查（有沒有增刪事實、數字、引語）→ 定稿；並點名改寫後最常殘留的 §1、§2、§6、§8、§19。</p></div></li>
+          <li><span class="ix">5</span><div><b>三種交付模式</b><p>貼上的文字回傳草稿 + 殘留清單 + 定稿；指定檔案只寫定稿；被其他任務嵌入時只回定稿。</p></div></li>
+          <li><span class="ix">6</span><div><b>「何時不要動手」與「保留作者聲音」</b><p>引語、標題、專名不改；有寫作樣本時樣本優先，連破折號規則都讓位。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>短劇台詞的 AI 腔（說教、總結式台詞、每句都押排比）可以照「成因 → 分級模式 → 前後對照」寫一份 <code>references/</code>。</p></div>
+        <div class="no"><h4>要注意</h4><p>詞彙層的例子全是英文。中文 AI 腔要自己整理，不能直接翻譯。</p></div>
+      </div>
+    </article>
+
+    <article class="take" id="humanize-writing">
+      <div class="take-top">
+        <h3><a href="https://github.com/jpeggdev/humanize-writing">jpeggdev/humanize-writing</a></h3>
+        <div class="chips"><span class="chip">464 行 + 278 行 reference</span><span class="chip">8 道 pass</span><span class="chip">MIT</span></div>
+      </div>
+      <p class="one">同一個來源，改寫成依序執行的八道 pass，並把詞表移到 references。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">humanize-writing/</span>
+├── SKILL.md
+│   <span class="n">├ Core Philosophy（pattern stacking）
+│   ├ Pass 1 結構 … Pass 8 加人味
+│   ├ Read It Out Loud 測試
+│   ├ What to Preserve
+│   └ Output Format（Changes 表）</span>
+└── <span class="d">references/</span>
+    └── ai-tells.md   <span class="n">Tier 1 / Tier 2 詞表</span></pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>pass 的順序就是優先序</b><p>先拆結構（每段都收一個金句、清單永遠三項），再處理誇大、詞彙、語法、節奏。最明顯的先修。</p></div></li>
+          <li><span class="ix">2</span><div><b>詞表分級並附「人類替代詞」</b><p>Tier 1 看到就改，Tier 2 出現三個以上才算訊號；每個詞旁邊都有替代寫法，或直接寫「刪掉」。</p></div></li>
+          <li><span class="ix">3</span><div><b>疊加原則</b><p>同一處同時中了粗體、引號、破折號，算一個強訊號而不是三個，避免灌水。</p></div></li>
+          <li><span class="ix">4</span><div><b>修改紀錄表有行數上限</b><p>Changes 表只列有改的 pass，超過 8 行代表「改太多或解釋太多」。</p></div></li>
+          <li><span class="ix">5</span><div><b>審查模式要求真的去數</b><p>「實際數破折號再下結論」「三列表格可能真的只有三件事」。檢查清單裡寫了反例。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>把「改稿紀錄最多 N 行」「先數再說」直接寫進我們的審查規則。</p></div>
+        <div class="no"><h4>要注意</h4><p>Pass 8「加人味」鼓勵加入第一人稱細節；用在改編劇本時會變成憑空加戲，要關掉。</p></div>
+      </div>
+    </article>
+
+    <article class="take" id="coauthoring">
+      <div class="take-top">
+        <h3><a href="https://github.com/anthropics/skills/tree/main/skills/doc-coauthoring">anthropics/skills · doc-coauthoring</a></h3>
+        <div class="chips"><span class="chip">375 行</span><span class="chip">3 個階段</span><span class="chip">官方範例</span><span class="chip">授權未逐檔標明</span></div>
+      </div>
+      <p class="one">流程拆解的教科書：每個階段寫目標，每節寫步驟，最後用「沒有上下文的讀者」驗收。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">skills/doc-coauthoring/</span>
+└── SKILL.md
+    <span class="n">├ When to Offer（觸發與邀請語）
+    ├ Stage 1 Context Gathering
+    ├ Stage 2 Refinement &amp; Structure
+    │   Step 1 澄清 → 2 發想 5–20 個
+    │   → 3 篩選 → 4 缺口 → 5 起草
+    │   → 6 精修（只做局部替換）
+    ├ Stage 3 Reader Testing
+    └ Final Review</span></pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>每個階段先寫一行 Goal</b><p>「縮小使用者知道的和 Claude 知道的之間的落差」。模型迷路時回到這行。</p></div></li>
+          <li><span class="ix">2</span><div><b>從未知最多的段落開始</b><p>決策文件先寫提案、規格先寫技術方案，摘要最後寫。</p></div></li>
+          <li><span class="ix">3</span><div><b>發想與篩選分開</b><p>先列 5–20 個選項讓使用者勾，再起草。避免第一版就定型。</p></div></li>
+          <li><span class="ix">4</span><div><b>收斂訊號寫成數字</b><p>連續三輪沒有實質修改，就問「有什麼可以刪掉」。</p></div></li>
+          <li><span class="ix">5</span><div><b>用新的子代理當讀者測試</b><p>預測 5–10 個讀者會問的問題，交給只拿到文件的子代理回答，答錯的地方就是缺口。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>「冷讀者測試」很適合分鏡：把單鏡提示詞丟給沒看過劇本的子代理，問「這鏡誰在說話、在哪、手上拿什麼」。</p></div>
+        <div class="no"><h4>要注意</h4><p>它高度依賴來回對話。短劇多集量產時，應改成批次跑完再回報，只在真正的創作分岔才問。</p></div>
+      </div>
+    </article>
+
+    <div class="lesson">
+      <h3>卷二帶走的寫法</h3>
+      <ol>
+        <li>品質規則先寫成因，再列模式；模式附強度與「單獨不算」。</li>
+        <li>每條規則用同一格式：觀察點、問題、改前、改後。</li>
+        <li>流程最後一步是「再掃最容易殘留的那幾項」，不是泛泛的「檢查一遍」。</li>
+        <li>明寫「不能新增事實」；改編類任務尤其要擋住模型加戲。</li>
+        <li>驗收用沒有上下文的讀者（子代理），而不是寫的人自己。</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ REEL 3 ============ -->
+  <section class="reel" id="reel3">
+    <div class="reel-head">
+      <div class="reel-no">R3</div>
+      <div>
+        <div class="eyebrow">卷三 · 多階段工作流、結構化輸出、references 與 templates 分工</div>
+        <h2>AI 短劇：兩種成熟路線，一個產品內建版本</h2>
+        <p>shuohao 走「JSON + 腳本質量門」，zenstory 走「Markdown 單一真相 + 規則分級 + 獨立審查」。mediago 則是把 Skill 綁在 App 的文件類型上。</p>
+      </div>
+    </div>
+
+    <article class="take" id="shuohao">
+      <div class="take-top">
+        <h3><a href="https://github.com/eternityspring/shuohao-skills">eternityspring/shuohao-skills</a></h3>
+        <div class="chips"><span class="chip">6 個 Skill</span><span class="chip">Node 零依賴</span><span class="chip">10–18 道腳本質量門</span><span class="chip">Apache-2.0</span><span class="chip">更新 2026-09-26</span></div>
+      </div>
+      <p class="one">小說 → 大綱 → 角色 / 美術 → 劇本 → 分鏡，每一段都是獨立可拷走的 Skill，用 JSON 接力。GitHub 上有大量 fork。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">skills/novel-script/</span>
+├── SKILL.md          <span class="n">159 行：Step 0–4</span>
+├── <span class="d">references/</span>
+│   ├── script-pass.md   <span class="n">怎麼寫一集</span>
+│   ├── schema.md        <span class="n">JSON 欄位</span>
+│   ├── report-style.md
+│   └── <span class="d">test-fixtures/</span>upstream/
+├── <span class="d">scripts/</span>
+│   ├── novel-script.mjs <span class="n">seed / validate / render</span>
+│   └── selftest.mjs     <span class="n">154 項斷言</span>
+├── <span class="d">examples/</span>渡口-script.json
+└── <span class="d">assets/</span>report.webp</pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>一句分層原則管住整條管線</b><blockquote>剧本管戏，分镜管拍</blockquote><p>台詞要反覆推翻，綁上鏡頭每改一句都要重排，所以劇本層不准有鏡號。每個 Skill 都有一段「邊界（不做的事）」。</p></div></li>
+          <li><span class="ix">2</span><div><b>確定性的事實交給腳本搬，不讓模型重想</b><p><code>seed</code> 從 outline.json 搬目標秒數、鉤子、懸念、爽點；<mark>「这些事实不要让模型重新想一遍」</mark>。模型只填 scenes。</p></div></li>
+          <li><span class="ix">3</span><div><b>校驗是不能跳的一步，而且是程式</b><p>每集時長 ±15%（台詞 4.5 字/秒、動作 2.5 秒/拍）、單句 ≤ 35 字、鉤子落在前 3 拍、每場至少一個動作拍。有違規就逐條修、重跑到通過。</p></div></li>
+          <li><span class="ix">4</span><div><b><code>*-pass.md</code> 分三層：硬規則、修改紀律、手感規則</b><p>硬規則有門；手感規則「不設門，但決定戲好不好看」；最後一張「常見病 → 症狀 → 治法」表（廣播劇、文學病、開場死畫面、注水…）。</p></div></li>
+          <li><span class="ix">5</span><div><b>為 AI 視頻寫的「常見動作」判據</b><p>上船、坐下、遞東西放心寫；用工具擋物、睫毛顫、以寸計位移要改寫。附 ✗/✓ 對照表。</p></div></li>
+          <li><span class="ix">6</span><div><b>質量門失敗會累積成統計</b><p>每次 validate 追加到 <code>.gates.jsonl</code>，<code>stats</code> 回答：哪道門最常響（該改的是措辭）、哪道從沒響過（死門或已內化）。用數據改 Skill 文字。</p></div></li>
+          <li><span class="ix">7</span><div><b>範例同時是品質基準與測試夾具</b><p>《渡口》6 集完整樣例對上游全部門通過；selftest 每道門都有擊穿用例。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>seed / validate / render 三個子命令、每批 ≤ 3 集、.gates.jsonl 回饋迴圈。這是目前看到最工程化的短劇 Skill。</p></div>
+        <div class="no"><h4>要注意</h4><p>台詞存 JSON 對編劇不友善，要靠 render 出 Markdown 與 HTML 報告補回可讀性；維護成本也最高。</p></div>
+      </div>
+    </article>
+
+    <article class="take" id="zenstory">
+      <div class="take-top">
+        <h3><a href="https://github.com/zenstory-ai/drama-skills">zenstory-ai/drama-skills</a></h3>
+        <div class="chips"><span class="chip">11 個 Skill</span><span class="chip">Python</span><span class="chip">附評測語料</span><span class="chip">MIT</span><span class="chip">更新 2026-10-03</span></div>
+      </div>
+      <p class="one">一個路由 Skill 加十個階段 Skill，每集只維護五份 Markdown。規則有編號、有分級，審查由另一個 Skill 獨立做。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">skills/</span>
+├── short-drama/        <span class="n">路由 + Dashboard</span>
+├── short-drama-write/
+│   ├── SKILL.md        <span class="n">104 行</span>
+│   ├── <span class="d">references/</span>
+│   │   ├── stage-contract.md  <span class="n">SCR-01…22</span>
+│   │   ├── script-craft.md
+│   │   ├── dialogue-craft.md
+│   │   └── screenplay-format.md
+│   ├── <span class="d">assets/</span>       <span class="n">← templates</span>
+│   │   ├── screenplay.md
+│   │   └── episode-card.json
+│   └── <span class="d">scripts/</span>duration_estimate.py
+├── short-drama-review/
+└── …（develop / assets / storyboard /
+    video-prompts / produce / edit）
+<span class="d">evaluations/</span>  <span class="n">16 個題材案例 + rubric + judge</span></pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>路由表把「誰負責什麼」寫成一張表</b><p>使用者要做什麼 → 哪個 owner Skill → 產出哪份檔。明確的單階段請求直接交給子 Skill，跨階段才經過路由。</p></div></li>
+          <li><span class="ix">2</span><div><b>不建立平行的結構化真相</b><p>每集只有 <code>剧本.md</code>、<code>视觉设定.md</code>、<code>分镜.md</code>、<code>图片提示词.md</code>、<code>视频提示词.md</code>；「不要為補齊名義流水線偽造上游」。</p></div></li>
+          <li><span class="ix">3</span><div><b>「按需知識」：訊號 → 讀哪份 reference</b><p>輸入有核心選擇、精確倒計時、關鍵物證時才讀 <code>script-craft.md</code> 對應小節；預設只讀 SKILL.md 和直接輸入。</p></div></li>
+          <li><span class="ix">4</span><div><b>規則有 ID 與四級分類</b><p><code>structural_invariant</code>（阻斷）→ <code>reviewed_invariant</code>（需證據判斷）→ <code>craft_default</code>（可覆蓋）→ <code>taste_option</code>（創作者選擇，不算缺陷）。審查意見引用規則 ID。</p></div></li>
+          <li><span class="ix">5</span><div><b>寫與審拆成兩個 Skill</b><p>審查「優先由未參與當前版本創作的 reviewer 執行」，只寫問題、證據、影響與修訂要求，不替 owner 改檔。</p></div></li>
+          <li><span class="ix">6</span><div><b>不可逆動作要先預覽再確認</b><p>實際生成媒體走 produce：先預覽，再顯式確認，最後執行。</p></div></li>
+          <li><span class="ix">7</span><div><b>只在真實創作分岔才問</b><blockquote>不要拿 schema、目录、事务或检查器询问创作者。</blockquote></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>規則 ID + 四級分類、訊號觸發式 references、寫審分離、題材案例評測集。對編劇最友善的一套。</p></div>
+        <div class="no"><h4>要注意</h4><p>SKILL.md 句子很密、抽象名詞多，讀起來吃力；規則表 22 條全英文，給中文模型時要確認理解一致。</p></div>
+      </div>
+    </article>
+
+    <article class="take" id="mediago">
+      <div class="take-top">
+        <h3><a href="https://github.com/mediago-dev/mediago-drama">mediago-dev/mediago-drama</a></h3>
+        <div class="chips"><span class="chip">App 內建 9 個 skill</span><span class="chip">26–152 行</span><span class="chip">Apache-2.0</span><span class="chip">更新 2026-07-30</span></div>
+      </div>
+      <p class="one">小說改短劇的桌面工作台（React + Go + Tauri）。Skill 不是給 Claude Code 裝的，而是綁在編輯器的文件類型上。</p>
+      <div class="take-grid">
+<pre class="tree"><span class="d">packages/instructions/pkg/pack/builtin/assets/</span>
+├── pack.json
+├── <span class="d">prompts/</span>
+└── <span class="d">skills/</span>
+    ├── novel-writer.skill.md
+    ├── screenplay-writer.skill.md
+    ├── character-writer.skill.md
+    ├── scene-writer.skill.md
+    ├── prop-writer.skill.md
+    ├── storyboard-writer.skill.md  <span class="n">65 行</span>
+    ├── image-generation.skill.md
+    ├── video-generation.skill.md
+    └── auto-mention-resolver.skill.md</pre>
+        <ol class="patterns">
+          <li><span class="ix">1</span><div><b>frontmatter 綁定文件類型</b><p><code>document_category: storyboard</code>：編輯分鏡文件時自動套用。一種文件一個寫作 Skill。</p></div></li>
+          <li><span class="ix">2</span><div><b>把演算法寫成步驟</b><p>15 秒分組：「加入下一鏡不超過 15.00 秒就同組，超過就開新組；最後一組可以少於 15 秒，禁止為湊滿拉長」。沒有腳本，但規則精確到可以手算。</p></div></li>
+          <li><span class="ix">3</span><div><b>每鏡自包含，禁止「同上」</b><p>全域光影、運鏡、質感、禁用元素要在每個鏡頭正文重寫一次，因為視頻模型一次只看一鏡。</p></div></li>
+          <li><span class="ix">4</span><div><b>橫切關注點獨立成 Skill</b><p><code>auto-mention-resolver</code> 只負責把角色、場景、道具連到資源索引，「不要替代業務寫作 Skill」。</p></div></li>
+          <li><span class="ix">5</span><div><b>收尾一段「輸出質檢」清單</b><p>逐項對應前文的硬規則：有沒有新增主線、每組是否 ≤ 15 秒、每鏡是否只一人說台詞。</p></div></li>
+        </ol>
+      </div>
+      <div class="verdict">
+        <div class="yes"><h4>可借鏡</h4><p>短小、一份文件一個 Skill、規則可手算；適合我們的第一版。</p></div>
+        <div class="no"><h4>要注意</h4><p>它要求動作「精確到肢體細節、受力、運動軌跡」，shuohao 卻說精確物理互動生成必崩。這類規則跟目標視頻模型有關，應該放進按模型區分的 reference。</p></div>
+      </div>
+    </article>
+
+    <div class="lesson">
+      <h3>卷三帶走的寫法</h3>
+      <ol>
+        <li>一句分層原則（劇本管戲、分鏡管拍）比十條規則更能守住階段邊界。</li>
+        <li>能算的交給腳本：時長、字數、鉤子位置、每段秒數。模型只做創作判斷。</li>
+        <li><code>references/</code> 放「怎麼寫」，<code>templates/</code>（兩個 repo 都叫 <code>assets/</code>）放「寫成什麼樣」的空白骨架，<code>examples/</code> 放填好的完整樣例。</li>
+        <li>規則加 ID 與等級，審查才能引用、才能區分「錯誤」與「品味」。</li>
+        <li>跟視頻模型綁定的規則（秒數上限、動作寫法、提示詞語言）獨立成按模型區分的檔案。</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ MATRIX ============ -->
+  <section class="reel" id="matrix">
+    <h2 class="section-title">九個 repo 的寫法對照</h2>
+    <div class="matrix-box">
+      <table>
+        <thead>
+          <tr><th>Repo</th><th>本體行數</th><th>references/ 分層</th><th>templates / 範例</th><th>明確邊界</th><th>固定輸出格式</th><th>可執行檢查</th><th>evals</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group"><td colspan="8">R1 · ELI5</td></tr>
+          <tr><th>dzhng · eli5</th><td class="mono">72</td><td class="o">○</td><td class="o">○</td><td class="h">◐</td><td class="f">●</td><td class="o">○</td><td class="o">○</td></tr>
+          <tr><th>mblode · eli5</th><td class="mono">42</td><td class="f">●</td><td class="o">○</td><td class="f">●</td><td class="h">◐</td><td class="o">○</td><td class="f">●</td></tr>
+          <tr><th>DreambigOu · ELI5</th><td class="mono">116</td><td class="o">○</td><td class="f">●</td><td class="o">○</td><td class="f">●</td><td class="o">○</td><td class="h">◐</td></tr>
+          <tr class="group"><td colspan="8">R2 · AI 寫作</td></tr>
+          <tr><th>blader · humanizer</th><td class="mono">397</td><td class="o">○</td><td class="f">●</td><td class="f">●</td><td class="f">●</td><td class="h">◐</td><td class="o">○</td></tr>
+          <tr><th>jpeggdev · humanize-writing</th><td class="mono">464</td><td class="f">●</td><td class="f">●</td><td class="h">◐</td><td class="f">●</td><td class="o">○</td><td class="o">○</td></tr>
+          <tr><th>anthropics · doc-coauthoring</th><td class="mono">375</td><td class="o">○</td><td class="o">○</td><td class="h">◐</td><td class="h">◐</td><td class="h">◐</td><td class="o">○</td></tr>
+          <tr class="group"><td colspan="8">R3 · AI 短劇</td></tr>
+          <tr><th>eternityspring · shuohao-skills</th><td class="mono">155–245</td><td class="f">●</td><td class="f">●</td><td class="f">●</td><td class="f">●</td><td class="f">●</td><td class="h">◐</td></tr>
+          <tr><th>zenstory-ai · drama-skills</th><td class="mono">73–245</td><td class="f">●</td><td class="f">●</td><td class="f">●</td><td class="f">●</td><td class="h">◐</td><td class="f">●</td></tr>
+          <tr><th>mediago-dev · mediago-drama</th><td class="mono">26–152</td><td class="o">○</td><td class="o">○</td><td class="f">●</td><td class="f">●</td><td class="o">○</td><td class="o">○</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="legend">● 完整　◐ 部分（例如 humanizer 只有 CI 打包檢查、doc-coauthoring 的檢查靠子代理讀者、shuohao 用 selftest 而非內容評測）　○ 沒有</p>
+  </section>
+
+  <!-- ============ BLUEPRINT ============ -->
+  <section class="reel" id="blueprint">
+    <h2 class="section-title">套到我們的短劇 Skill：建議骨架</h2>
+    <div class="blueprint">
+<pre class="tree"><span class="d">short-drama-skill/</span>
+├── SKILL.md            <span class="n">≤ 200 行</span>
+│   <span class="n">├ description：中文觸發語
+│   ├ 一句分層原則 + 不做的事
+│   ├ Step 0 定範圍 → 4 交付
+│   └ 訊號 → 讀哪份 reference</span>
+├── <span class="d">references/</span>        <span class="n">給模型讀：怎麼寫</span>
+│   ├── script-pass.md
+│   ├── storyboard-pass.md
+│   ├── rules.md        <span class="n">ID + 四級分類</span>
+│   ├── anti-ai-tone.md <span class="n">中文台詞 AI 腔</span>
+│   └── <span class="d">models/</span>seedance.md
+├── <span class="d">templates/</span>         <span class="n">給模型填：長什麼樣</span>
+│   ├── 剧本.md
+│   └── 分镜.md
+├── <span class="d">examples/</span>          <span class="n">一集完整樣例</span>
+├── <span class="d">scripts/</span>validate.py <span class="n">時長、字數、鉤子</span>
+└── <span class="d">evals/</span>evals.json    <span class="n">題材案例 + 斷言</span></pre>
+      <div>
+        <ol class="rules">
+          <li><div><b>開頭寫一句分層原則與「不做的事」</b><span>例如「劇本管戲，分鏡管拍」，接著列出這個 Skill 不碰的工作與該交給誰。（shuohao、mblode）</span></div></li>
+          <li><div><b>description 寫使用者真的會說的中文</b><span>「幫我寫一集」「改成短劇」「拆分鏡」「去 AI 味」，包含部分匹配。（DreambigOu、shuohao 的 triggers）</span></div></li>
+          <li><div><b>SKILL.md 寫流程，references 寫知識，並寫明讀取訊號</b><span>「輸入有精確倒計時才讀 script-craft.md §6.3」。（zenstory、mblode）</span></div></li>
+          <li><div><b>templates 只放空白骨架，examples 放填好的樣例</b><span>骨架決定格式，樣例示範品質，兩者都不寫規則。</span></div></li>
+          <li><div><b>能算的寫成腳本，Step 標「不能跳」</b><span>每集時長、單句台詞字數、鉤子在前 3 拍、每段 ≤ 15 秒。（shuohao、mediago）</span></div></li>
+          <li><div><b>規則編號並分四級</b><span>阻斷、需判斷、預設可覆蓋、品味。審查只引用編號。（zenstory）</span></div></li>
+          <li><div><b>去 AI 腔規則先寫成因、再寫分級模式與前後對照</b><span>中文台詞自己整理：說教、總結式金句、排比、每句都解釋情緒。（humanizer、humanize-writing）</span></div></li>
+          <li><div><b>寫與審分開，審查用沒看過上下文的讀者</b><span>分鏡丟給子代理問「誰、在哪、拿著什麼」。（zenstory、doc-coauthoring）</span></div></li>
+          <li><div><b>跟視頻模型綁定的規則獨立成檔</b><span>15 秒上限、動作寫法、提示詞語言因模型而異。（mediago 與 shuohao 的衝突）</span></div></li>
+          <li><div><b>預設值寫死，只在真實創作分岔才問</b><span>沒說集長就用 2 分鐘、沒說批次就每批 3 集，自動續跑。（DreambigOu、zenstory、shuohao）</span></div></li>
+        </ol>
+      </div>
+    </div>
+    <div class="split">
+      <div><h4>references/</h4><p>模型寫之前要知道的事：硬規則、手藝、常見病、按模型區分的方言。可以很長，但按訊號載入。</p></div>
+      <div><h4>templates/</h4><p>輸出的空白形狀：標題層級、場景標頭、對白格式、欄位順序。不含規則說明。</p></div>
+      <div><h4>examples/</h4><p>一集通過全部檢查的完整成品，同時當品質基準與測試夾具。</p></div>
+    </div>
+  </section>
+
+  <section class="reel" id="sources">
+    <h2 class="section-title">來源</h2>
+    <ul class="sources">
+      <li><a href="https://github.com/dzhng/skills/blob/main/skills/engineering/eli5/SKILL.md">dzhng/skills · eli5/SKILL.md</a></li>
+      <li><a href="https://github.com/mblode/agent-skills/tree/main/skills/eli5">mblode/agent-skills · skills/eli5</a></li>
+      <li><a href="https://github.com/DreambigOu/ELI5">DreambigOu/ELI5</a></li>
+      <li><a href="https://github.com/blader/humanizer">blader/humanizer</a></li>
+      <li><a href="https://github.com/jpeggdev/humanize-writing">jpeggdev/humanize-writing</a></li>
+      <li><a href="https://github.com/anthropics/skills/tree/main/skills/doc-coauthoring">anthropics/skills · doc-coauthoring</a></li>
+      <li><a href="https://github.com/eternityspring/shuohao-skills">eternityspring/shuohao-skills</a></li>
+      <li><a href="https://github.com/zenstory-ai/drama-skills">zenstory-ai/drama-skills</a></li>
+      <li><a href="https://github.com/mediago-dev/mediago-drama">mediago-dev/mediago-drama</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing">Wikipedia: Signs of AI writing</a></li>
+    </ul>
+    <footer>行數與更新日期取自 2026-10-06 的 main 分支淺層 clone。引文保留原文語言。</footer>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function () {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Hero load sequence
+  if (window.gsap && !reduce) {
+    gsap.from('.hero > *', { y: 24, opacity: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08 });
+    gsap.from('.summary > div', { y: 16, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.07, delay: 0.3 });
+  }
+
+  // Storyboard timeline canvas: segments <= 15s, cuts 2–5s, moving playhead
+  const canvas = document.getElementById('tl');
+  const tc = document.getElementById('tc');
+  const ctx = canvas.getContext('2d');
+  // Segment layout (seconds) drawn from the rule: each segment <= 15s, each cut 2–5s
+  const segments = [
+    [3.0, 4.5, 2.5, 3.5],
+    [2.0, 5.0, 3.0, 4.0],
+    [4.0, 2.5, 3.5, 2.0, 2.5],
+    [3.0, 4.0, 2.5]
+  ];
+  const total = segments.flat().reduce((a, b) => a + b, 0);
+  let colors = {};
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    colors = {
+      seg: s.getPropertyValue('--seg').trim(),
+      ink: s.getPropertyValue('--ink').trim(),
+      muted: s.getPropertyValue('--muted').trim(),
+      accent: s.getPropertyValue('--accent').trim(),
+      card: s.getPropertyValue('--card').trim()
+    };
+  }
+  let w = 0, h = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.clientWidth; h = canvas.clientHeight;
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function fmt(t) {
+    const s = Math.floor(t), cs = Math.floor((t - s) * 100);
+    return '00:' + String(s).padStart(2, '0') + '.' + String(cs).padStart(2, '0');
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, w, h);
+    const pad = 4, top = 26, barH = h - top - 30;
+    const sx = (w - pad * 2) / total;
+    ctx.font = '600 11px "JetBrains Mono", monospace';
+    ctx.textBaseline = 'alphabetic';
+    // ruler
+    ctx.fillStyle = colors.muted;
+    for (let s = 0; s <= total; s += 1) {
+      const x = pad + s * sx;
+      const step = w < 560 ? 10 : 5;
+      const major = s % step === 0;
+      ctx.fillRect(Math.round(x), top - (major ? 10 : 5), 1, major ? 10 : 5);
+      if (major && s + 3 < total) ctx.fillText(s + 's', x + 3, top - 12);
+    }
+    // segments + cuts
+    let x0 = 0, activeSeg = 0, activeCut = 0, local = 0, ci = 0;
+    segments.forEach((cuts, si) => {
+      const segLen = cuts.reduce((a, b) => a + b, 0);
+      const xs = pad + x0 * sx, ws = segLen * sx;
+      const inSeg = t >= x0 && t < x0 + segLen;
+      ctx.fillStyle = inSeg ? colors.accent : colors.seg;
+      ctx.globalAlpha = inSeg ? 0.18 : 1;
+      ctx.fillRect(xs + 1, top + 4, ws - 2, barH);
+      ctx.globalAlpha = 1;
+      let cx = x0;
+      cuts.forEach((c, k) => {
+        const xx = pad + cx * sx;
+        if (k > 0) { ctx.fillStyle = colors.card; ctx.fillRect(Math.round(xx) - 1, top + 4, 2, barH); }
+        if (t >= cx && t < cx + c) { activeSeg = si; activeCut = k; local = t - x0; }
+        cx += c;
+      });
+      ctx.fillStyle = inSeg ? colors.accent : colors.muted;
+      ctx.fillText('E01-0' + (si + 1), xs + 6, top + 4 + barH + 16);
+      x0 += segLen;
+    });
+    // playhead
+    const px = pad + t * sx;
+    ctx.fillStyle = colors.ink;
+    ctx.fillRect(Math.round(px), top - 4, 2, barH + 10);
+    ctx.beginPath(); ctx.moveTo(px - 5, top - 8); ctx.lineTo(px + 7, top - 8); ctx.lineTo(px + 1, top - 1); ctx.closePath(); ctx.fill();
+    tc.textContent = 'E01-0' + (activeSeg + 1) + ' · 切 ' + (activeCut + 1) + ' · ' + fmt(local);
+  }
+  let start = null;
+  function loop(ts) {
+    if (start === null) start = ts;
+    const t = ((ts - start) / 1000 * 1.6) % total;
+    draw(t);
+    requestAnimationFrame(loop);
+  }
+  readColors(); resize();
+  window.addEventListener('resize', () => { resize(); if (reduce) draw(6.4); });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); if (reduce) draw(6.4); });
+  new MutationObserver(() => { readColors(); if (reduce) draw(6.4); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (reduce) draw(6.4); });
+  if (reduce) draw(6.4); else requestAnimationFrame(loop);
+})();
+</script>
