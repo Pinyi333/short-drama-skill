@@ -94,6 +94,9 @@
       "emotion": -3,
       "paywall": false
     }
+  ],
+  "foreshadowing": [
+    { "setup": "", "planted_ep": 1, "payoff_ep": 5, "status": "open | paid_off | sequel" }
   ]
 }
 ```

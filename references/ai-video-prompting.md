@@ -62,12 +62,22 @@ cool blue ambient light with warm spotlights
 | 時長 | 依分鏡秒數，多數工具單段 4–10 秒 |
 | 畫幅 | 竪屏固定寫 `vertical 9:16` |
 
-範例：
+範例（展開前，表格中這樣寫）：
 
 ```
 [LIN_YAN], raises her hand and slaps the man in front of her, luxury hotel lobby with marble floor
 and crystal chandelier, medium close-up, low angle, slow push in, cool rim light, cinematic,
 photorealistic, shallow depth of field, slow motion, 5 seconds, vertical 9:16
+```
+
+送進工具時（展開後）：
+
+```
+26-year-old East Asian woman, shoulder-length straight black hair with side bangs, small mole under left eye,
+white silk blouse, black tailored trousers, thin silver watch on left wrist, raises her hand and slaps the man
+in front of her, luxury hotel lobby with marble floor and crystal chandelier, medium close-up, low angle,
+slow push in, cool rim light, cinematic, photorealistic, shallow depth of field, slow motion, 5 seconds,
+vertical 9:16
 ```
 
 ## 負面提示詞（若工具支援）
