@@ -34,6 +34,9 @@
     "assumptions": ["未指定集數，採預設 60 集"]
   },
   "logline": "",
+  "logline_candidates": [
+    { "text": "", "direction": "", "chosen": true }
+  ],
   "selling_points": [""],
   "core_payoff_types": ["身分揭露", "打臉反轉"],
   "acts": [
@@ -53,7 +56,7 @@
     {
       "id": "LIN_YAN",
       "name": "林嫣",
-      "role": "protagonist | antagonist | love_interest | support",
+      "role": "protagonist | antagonist | love_interest | family | support | functional",
       "age": 26,
       "appearance": "",
       "visual_anchor": "26-year-old East Asian woman, ...",
@@ -102,6 +105,8 @@
   "meta": {},
   "ep": 1,
   "estimated_seconds": 92,
+  "dialogue_chars": 180,
+  "action_seconds": 32,
   "scenes": [
     {
       "scene": 1,
@@ -156,10 +161,13 @@
   "character_anchors": [
     { "id": "LIN_YAN", "anchor": "", "reference_prompts": { "front": "", "side": "", "full_body": "" } }
   ],
+  "scene_anchors": [
+    { "id": "HOTEL_LOBBY", "anchor": "" }
+  ],
   "shots": [
     {
       "shot": 1,
-      "mode": "image_to_video | text_to_video",
+      "mode": "image_to_video | text_to_video | text_to_image_then_video",
       "start_frame": "LIN_YAN.front | prev_shot_last_frame | null",
       "prompt": "",
       "negative_prompt": "",
