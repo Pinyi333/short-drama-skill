@@ -40,10 +40,10 @@ short-drama-skill/
 
 ```bash
 # 個人使用
-git clone https://github.com/Pinyi333/short-drama-skill.git ~/.claude/skills/short-drama
+git clone https://github.com/Pinyi333/short-drama-skill.git ~/.claude/skills/short-drama-tw
 
 # 或放在專案內，與團隊共用
-git clone https://github.com/Pinyi333/short-drama-skill.git .claude/skills/short-drama
+git clone https://github.com/Pinyi333/short-drama-skill.git .claude/skills/short-drama-tw
 ```
 
 ### Claude.ai／Claude 桌面版
@@ -99,3 +99,9 @@ Write a 30-episode billionaire romance micro drama, output as JSON.
 ## 授權
 
 [MIT License](LICENSE)
+
+## 聲明
+
+本專案為社群開源專案，與 Anthropic 無隸屬或合作關係，亦未獲其背書。Claude、Claude Code 為 Anthropic 的商標，文中提及僅為說明相容的使用環境。
+
+This is an independent community project and is not affiliated with or endorsed by Anthropic. Claude and Claude Code are trademarks of Anthropic, mentioned only to describe compatibility.
