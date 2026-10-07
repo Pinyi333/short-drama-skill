@@ -9,7 +9,7 @@ AI 短劇最常見的問題是同一角色每個鏡頭長得不一樣。處理�
 1. **先做定裝圖**：每個主要角色產出一組「角色錨點」提示詞，生成正面、側面、全身三張參考圖。
 2. **固定錨點關鍵詞**：從角色表抽出 5–8 個不會變的外型詞（髮型、髮色、臉型特徵、標誌配件、主要服裝），每次提到該角色都原封不動帶上。
 3. **優先用圖生影片**：有角色出現的鏡頭，以定裝圖或前一鏡的最後一格作為起始圖。
-4. **換裝要建新錨點**：角色換衣服時，另建一組錨點並在分鏡中標註。
+4. **換裝要建新錨點**：角色換衣服時，另建一組錨點，命名為 `<代號>_<服裝>`（例：`LIN_YAN_GOWN`），並在分鏡中標註。
 
 ### 角色錨點格式
 
@@ -24,6 +24,25 @@ AI 短劇最常見的問題是同一角色每個鏡頭長得不一樣。處理�
 small mole under left eye, white silk blouse, black tailored trousers, thin silver watch on left wrist
 ```
 
+### 佔位符的用法
+
+提示詞表格中寫 `[LIN_YAN]` 是為了好讀、好維護。多數工具看不懂這種代號，**送進工具前，把每個 `[代號]` 換成錨點全文**，一字不改。
+
+## 場景一致性
+
+同一地點在不同鏡頭也會漂移（牆面、招牌、光線）。反覆出現的地點各建一組場景錨點，用法與角色錨點相同：
+
+```
+[場景代號] = <地點類型>, <2–4 個固定陳設>, <主光線與時段>, <需要時加 no legible text>
+```
+
+範例：
+
+```
+[HOTEL_LOBBY] = luxury hotel lobby at night, white marble floor, crystal chandelier, tall black reception desk,
+cool blue ambient light with warm spotlights
+```
+
 ## 影片提示詞結構
 
 每鏡依序填入，用逗號分隔：
@@ -36,19 +55,29 @@ small mole under left eye, white silk blouse, black tailored trousers, thin silv
 |------|----------|
 | 主體與錨點 | 直接貼上角色錨點 |
 | 動作 | 一鏡一個主要動作，用具體動詞（slaps, turns around slowly, tears the contract） |
-| 場景 | 地點＋2–3 個環境細節 |
+| 場景 | 場景錨點，或地點＋2–3 個環境細節 |
 | 景別／角度／運鏡 | 使用 `shot-vocabulary.md` 的英文用語 |
 | 光線 | 一種主光線描述 |
 | 風格 | 預設 `cinematic, photorealistic, shallow depth of field, film grain` |
 | 時長 | 依分鏡秒數，多數工具單段 4–10 秒 |
 | 畫幅 | 竪屏固定寫 `vertical 9:16` |
 
-範例：
+範例（展開前，表格中這樣寫）：
 
 ```
 [LIN_YAN], raises her hand and slaps the man in front of her, luxury hotel lobby with marble floor
 and crystal chandelier, medium close-up, low angle, slow push in, cool rim light, cinematic,
 photorealistic, shallow depth of field, slow motion, 5 seconds, vertical 9:16
+```
+
+送進工具時（展開後）：
+
+```
+26-year-old East Asian woman, shoulder-length straight black hair with side bangs, small mole under left eye,
+white silk blouse, black tailored trousers, thin silver watch on left wrist, raises her hand and slaps the man
+in front of her, luxury hotel lobby with marble floor and crystal chandelier, medium close-up, low angle,
+slow push in, cool rim light, cinematic, photorealistic, shallow depth of field, slow motion, 5 seconds,
+vertical 9:16
 ```
 
 ## 負面提示詞（若工具支援）
